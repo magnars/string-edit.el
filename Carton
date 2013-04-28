@@ -1,0 +1,7 @@
+(source "melpa" "http://melpa.milkbox.net/packages/")
+
+(package "string-edit" "0.1.0" "Avoid escape nightmares by editing string in separate buffer")
+
+(development
+  (depends-on "ecukes")
+  (depends-on "espuds"))
