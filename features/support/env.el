@@ -11,7 +11,8 @@
 
 (Before
  (switch-to-buffer
-  (get-buffer-create "*string-edit*"))
+  (get-buffer-create "*string-edit-main-buffer*"))
+ (delete-other-windows)
  (erase-buffer)
  (fundamental-mode)
  (deactivate-mark))

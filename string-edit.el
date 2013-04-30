@@ -24,5 +24,215 @@
 
 ;;; Code:
 
+(require 's)
+
+(defun string-edit-at-point ()
+  (interactive)
+  (when (se/point-inside-string-p)
+    (let* ((p (point))
+           (original-buffer (current-buffer))
+           (original (se/find-original)))
+      (select-window (split-window-vertically -4))
+      (switch-to-buffer (generate-new-buffer "*string-edit*"))
+      (insert (se/aget :raw original))
+      (goto-char (- p (se/aget :beg original) -1))
+      (funcall (se/aget :cleanup original))
+      (enlarge-window (1- (line-number-at-pos (point-max))))
+      (se/guess-at-major-mode)
+      (string-edit-mode 1)
+      (set (make-local-variable 'se/original) original)
+      (set (make-local-variable 'se/original-buffer) original-buffer)
+      (font-lock-fontify-buffer))))
+
+(defun string-edit-abort ()
+  "Used in string-edit-mode to close the popup window"
+  (interactive)
+  (kill-buffer)
+  (delete-window))
+
+(defun string-edit-conclude ()
+  (interactive)
+  (funcall (se/aget :escape se/original))
+  (let ((p (point))
+        (contents (buffer-substring-no-properties (point-min) (point-max)))
+        (original se/original)
+        (original-buffer se/original-buffer)
+        (beg (se/aget :beg se/original)))
+    (kill-buffer)
+    (delete-window)
+    (switch-to-buffer original-buffer)
+    (goto-char beg)
+    (delete-char (length (se/aget :raw original)))
+    (insert "\"" contents "\"")
+    (let ((end (point)))
+      (goto-char (+ p beg))
+      (indent-region beg end))))
+
+(defun se/find-original ()
+  (if (derived-mode-p 'js2-mode 'js-mode)
+      (se/js-strings-at-point)
+    (se/string-at-point)))
+
+(defun se/guess-at-major-mode ()
+  (save-excursion
+    (goto-char (point-min))
+    (when (looking-at "<")
+      (html-mode))))
+
+(defun se/unescape-quotes (quote)
+  (goto-char (point-min))
+  (while (search-forward (concat "\\" quote) nil t)
+    (replace-match quote)))
+
+(defun se/escape-quotes (quote)
+  (goto-char (point-min))
+  (while (search-forward quote nil t)
+    (replace-match "")
+    (insert "\\" quote)))
+
+(defun se/unescape-slashes ()
+  (goto-char (point-min))
+  (while (search-forward "\\\\" nil t)
+    (replace-match "")
+    (insert "\\")))
+
+(defun se/escape-slashes ()
+  (goto-char (point-min))
+  (while (search-forward "\\" nil t)
+    (replace-match "")
+    (insert "\\\\")))
+
+(defvar string-edit-mode-map nil
+  "Keymap for string-edit minor mode.")
+
+(unless string-edit-mode-map
+  (setq string-edit-mode-map (make-sparse-keymap)))
+
+(--each '(("C-c C-k" . string-edit-abort)
+          ("C-c C-c" . string-edit-conclude))
+  (define-key string-edit-mode-map (read-kbd-macro (car it)) (cdr it)))
+
+(define-minor-mode string-edit-mode
+  "Minor mode for useful keybindings while editing string."
+  nil " StringEdit" string-edit-mode-map
+  (if string-edit-mode-map
+      (add-hook 'post-command-hook 'se/post-command nil t)
+    (remove-hook 'post-command-hook 'se/post-command t)))
+
+(defun se/post-command ()
+  (se/adjust-window-size-to-fit-text))
+
+(defun se/adjust-window-size-to-fit-text ()
+  (when (and (> (+ 2 (line-number-at-pos (point-max)))
+                (window-height))
+             (> (/ (frame-height) (window-height))
+                1))
+    (enlarge-window 1)))
+
+(defun se/aget (key map)
+  (cdr (assoc key map)))
+
+(defun se/current-quotes-char ()
+  "The char that is the current quote delimiter"
+  (nth 3 (syntax-ppss)))
+
+(defalias 'se/point-inside-string-p 'se/current-quotes-char)
+
+(defun se/move-point-backward-out-of-string ()
+  "Move point backward until it exits the current quoted string."
+  (while (se/point-inside-string-p) (backward-char)))
+
+(defun se/move-point-forward-out-of-string ()
+  "Move point forward until it exits the current quoted string."
+  (while (se/point-inside-string-p) (forward-char)))
+
+(defun se/string-position-at-point ()
+  (let (beg)
+    (save-excursion
+      (se/move-point-backward-out-of-string)
+      (setq beg (point))
+      (forward-sexp 1)
+      (cons beg (point)))))
+
+;;; String conversion types
+
+;; Regular old strings
+
+(defun se/string-at-point ()
+  (let* ((pos (se/string-position-at-point))
+         (p (point))
+         (beg (car pos))
+         (end (cdr pos))
+         (raw (buffer-substring-no-properties beg end))
+         (quote (char-to-string (se/current-quotes-char))))
+    `((:beg . ,beg)
+      (:end . ,end)
+      (:raw . ,raw)
+      (:cleanup . ,(-partial 'se/string-at-point/clean-up quote))
+      (:escape . ,(-partial 'se/string-at-point/escape quote)))))
+
+(defun se/string-at-point/clean-up (quote)
+  (save-excursion
+    (goto-char (point-max))
+    (delete-char (- (length quote)))
+    (goto-char (point-min))
+    (delete-char (length quote))
+    (se/unescape-quotes quote)
+    (se/unescape-slashes)))
+
+(defun se/string-at-point/escape (quote)
+  (save-excursion
+    (se/escape-slashes)
+    (se/escape-quotes quote)))
+
+;; JavaScript strings, can be concatenated
+
+(defun se/js-strings-at-point ()
+  (let ((quote (char-to-string (se/current-quotes-char)))
+        beg end)
+    (save-excursion
+      (se/move-point-backward-out-of-string)
+      (while (looking-back (concat (regexp-quote quote) "[\n ]*\\+[\n ]*"))
+        (goto-char (match-beginning 0))
+        (se/move-point-backward-out-of-string))
+      (setq beg (point)))
+    (save-excursion
+      (se/move-point-forward-out-of-string)
+      (while (looking-at (concat "[\n ]*\\+[\n ]*" (regexp-quote quote)))
+        (goto-char (match-end 0))
+        (se/move-point-forward-out-of-string))
+      (setq end (point)))
+    `((:beg . ,beg)
+      (:end . ,end)
+      (:raw . ,(buffer-substring-no-properties beg end))
+      (:cleanup . ,(-partial 'se/js-strings-at-point/clean-up quote))
+      (:escape . ,(-partial 'se/js-strings-at-point/escape quote)))))
+
+(defun se/js-strings-at-point/clean-up (quote)
+  (save-excursion
+    (goto-char (point-max))
+    (delete-char (- (length quote)))
+    (goto-char (point-min))
+    (delete-char (length quote))
+    (while (search-forward (concat quote " + " quote) nil t)
+      (replace-match ""))
+    (goto-char (point-min))
+    (while (re-search-forward (concat (regexp-quote quote) " \\+ *\n *" (regexp-quote quote)) nil t)
+      (replace-match "\n"))
+    (se/unescape-quotes quote)
+    (se/unescape-slashes)))
+
+(defun se/js-strings-at-point/escape (quote)
+  (save-excursion
+    (se/escape-slashes)
+    (se/escape-quotes quote)
+    (goto-char (point-min))
+    (while (re-search-forward "^" nil t)
+      (unless (bobp)
+        (insert "\""))
+      (end-of-line)
+      (unless (eobp)
+        (insert "\" +")))))
+
 (provide 'string-edit)
 ;;; string-edit.el ends here
