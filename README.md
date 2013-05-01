@@ -1,6 +1,6 @@
 # string-edit.el [![Build Status](https://secure.travis-ci.org/magnars/string-edit.el.png)](http://travis-ci.org/magnars/string-edit.el)
 
-Avoid escape nightmares by editing string in separate buffer
+Avoid escape nightmares by editing strings in a separate buffer.
 
 ## Installation
 
@@ -14,8 +14,31 @@ It's available on [marmalade](http://marmalade-repo.org/) and
 You can also install the dependencies on your own, and just dump
 string-edit in your path somewhere:
 
- - <a href="https://github.com/magnars/s.el">s.el</a>
  - <a href="https://github.com/magnars/dash.el">dash.el</a>
+
+## Usage
+
+Call `string-edit-at-point` when inside a string. A new buffer pops
+up with unescaped content, letting you edit it directly.
+
+Then press `C-c C-c` to re-escape the content and insert into the
+string, or `C-c C-k` to abort.
+
+### JavaScript and HTML
+
+I made this package to edit html templates in javascript code. So it
+works a little special there:
+
+ - newlines in the content resolves into multiple concatenated strings.
+ - if the content starts with a `<`, html-mode is enabled in the popup buffer.
+
+## Todo
+
+ - escape/unescape more stuff, most notably `\n` and `\t`.
+ - what's the difference between a newline and a `\n` in an emacs lisp multiline string?
+ - setting major-mode for the popup buffer
+ - changing major-mode when inside the popup buffer clears all local
+   vars, breaking the functionality - any way around that?
 
 ## Contribute
 
