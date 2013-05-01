@@ -27,6 +27,7 @@
 
 (require 'dash)
 
+;;;###autoload
 (defun string-edit-at-point ()
   (interactive)
   (when (se/point-inside-string-p)
