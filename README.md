@@ -24,6 +24,8 @@ up with unescaped content, letting you edit it directly.
 Then press `C-c C-c` to re-escape the content and insert into the
 string, or `C-c C-k` to abort.
 
+Here's [an ascii-cast of it in action](http://ascii.io/a/3040).
+
 ### JavaScript and HTML
 
 I made this package to edit html templates in javascript code. So it
