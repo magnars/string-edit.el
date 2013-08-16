@@ -81,28 +81,29 @@
     (when (looking-at "<")
       (html-mode))))
 
-(defun se/unescape-quotes (quote)
+(defun se/unescape (quote)
   (goto-char (point-min))
   (while (search-forward (concat "\\" quote) nil t)
-    (replace-match quote)))
+    (replace-match "")
+    (insert quote)))
 
-(defun se/escape-quotes (quote)
+(defun se/escape (quote)
   (goto-char (point-min))
   (while (search-forward quote nil t)
     (replace-match "")
     (insert "\\" quote)))
 
-(defun se/unescape-slashes ()
+(defun se/unescape-ws (signifier char)
   (goto-char (point-min))
-  (while (search-forward "\\\\" nil t)
+  (while (search-forward (concat "\\" signifier) nil t)
     (replace-match "")
-    (insert "\\")))
+    (insert char)))
 
-(defun se/escape-slashes ()
+(defun se/escape-ws (signifier char)
   (goto-char (point-min))
-  (while (search-forward "\\" nil t)
+  (while (search-forward char nil t)
     (replace-match "")
-    (insert "\\\\")))
+    (insert "\\" signifier)))
 
 (defvar string-edit-mode-map nil
   "Keymap for string-edit minor mode.")
@@ -179,13 +180,19 @@
     (delete-char (- (length quote)))
     (goto-char (point-min))
     (delete-char (length quote))
-    (se/unescape-quotes quote)
-    (se/unescape-slashes)))
+    (se/unescape quote)
+    (se/unescape-ws "n" "\n")
+    (se/unescape-ws "r" "\r")
+    (se/unescape-ws "t" "\t")
+    (se/unescape "\\")))
 
 (defun se/string-at-point/escape (quote)
   (save-excursion
-    (se/escape-slashes)
-    (se/escape-quotes quote)))
+    (se/escape "\\")
+    (se/escape-ws "n" "\n")
+    (se/escape-ws "r" "\r")
+    (se/escape-ws "t" "\t")
+    (se/escape quote)))
 
 ;; JavaScript strings, can be concatenated
 
@@ -194,7 +201,7 @@
         beg end)
     (save-excursion
       (se/move-point-backward-out-of-string)
-      (while (looking-back (concat (regexp-quote quote) "[\n ]*\\+[\n ]*"))
+      (while (looking-back (concat (regexp-quote quote) "[\n\r\t ]*\\+[\n ]*"))
         (goto-char (match-beginning 0))
         (se/move-point-backward-out-of-string))
       (setq beg (point)))
@@ -221,13 +228,13 @@
     (goto-char (point-min))
     (while (re-search-forward (concat (regexp-quote quote) " \\+ *\n *" (regexp-quote quote)) nil t)
       (replace-match "\n"))
-    (se/unescape-quotes quote)
-    (se/unescape-slashes)))
+    (se/unescape quote)
+    (se/unescape "\\")))
 
 (defun se/js-strings-at-point/escape (quote)
   (save-excursion
-    (se/escape-slashes)
-    (se/escape-quotes quote)
+    (se/escape "\\")
+    (se/escape quote)
     (goto-char (point-min))
     (while (re-search-forward "^" nil t)
       (unless (bobp)

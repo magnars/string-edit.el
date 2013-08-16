@@ -52,6 +52,21 @@ Feature: Edit string at point
     And I edit the string at point
     Then I should see "my \string"
 
+  Scenario: Un-escape newlines (not in js-mode)
+    Given I turn on emacs-lisp-mode
+    And I insert "(looking-at "ab\ncd")"
+    When I go to the front of the word "ab"
+    And I edit the string at point
+    Then I should see:
+    """
+    ab
+    cd
+    """
+    When I go to the end of the word "ab"
+    And I press "RET"
+    And I press "C-c C-c"
+    Then I should see "(looking-at "ab\n\ncd")"
+
   Scenario: Re-escape
     Given I turn on javascript-mode
     And I insert "var s = "my string";"

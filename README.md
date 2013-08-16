@@ -36,7 +36,6 @@ works a little special there:
 
 ## Todo
 
- - escape/unescape more stuff, most notably `\n` and `\t`.
  - string interpolation (handle with intangible overlays?)
  - what's the difference between a newline and a `\n` in an emacs lisp multiline string?
  - setting major-mode for the popup buffer
