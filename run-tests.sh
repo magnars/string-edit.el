@@ -1,2 +1,2 @@
 #!/bin/sh -e
-carton exec ecukes "$@"
+cask exec ecukes "$@"
