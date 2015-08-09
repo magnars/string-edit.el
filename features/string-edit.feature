@@ -124,3 +124,12 @@ Feature: Edit string at point
         "string" +
         "yeah";
     """
+
+  Scenario: Open string in major with with generic string delimiters
+    Given I turn on python-mode
+    And I insert "s = "my string""
+    When I go to the front of the word "string"
+    And I edit the string at point
+    And I type "test"
+    And I press "C-c C-c"
+    Then I should see "s = "my teststring""
