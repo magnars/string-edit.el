@@ -136,8 +136,11 @@
   (cdr (assoc key map)))
 
 (defun se/current-quotes-char ()
-  "The char that is the current quote delimiter"
-  (nth 3 (syntax-ppss)))
+  "The char that is the current quote delimiter, or nil if not in a string."
+  (let ((delimiter (nth 3 (syntax-ppss))))
+    (cond ((stringp delimiter) delimiter)
+          ;; `syntax-ppss' can return t meaning 'a generic string delimiter'.
+          (delimiter ?\"))))
 
 (defalias 'se/point-inside-string-p 'se/current-quotes-char)
 
