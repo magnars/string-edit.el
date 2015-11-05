@@ -27,6 +27,9 @@
 
 (require 'dash)
 
+(defvar se/original)
+(defvar se/original-buffer)
+
 ;;;###autoload
 (defun string-edit-at-point ()
   (interactive)
