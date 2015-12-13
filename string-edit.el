@@ -30,6 +30,11 @@
 (defvar se/original)
 (defvar se/original-buffer)
 
+(defvar string-edit-at-point-hook ()
+  "Hook to run just before enabling `string-edit-mode'.
+This hook provides an opportunity to enable a custom major mode
+before the minor mode is enabled.")
+
 ;;;###autoload
 (defun string-edit-at-point ()
   (interactive)
@@ -44,6 +49,7 @@
       (funcall (se/aget :cleanup original))
       (enlarge-window (1- (line-number-at-pos (point-max))))
       (se/guess-at-major-mode)
+      (run-hooks 'string-edit-at-point-hook)
       (string-edit-mode 1)
       (set (make-local-variable 'se/original) original)
       (set (make-local-variable 'se/original-buffer) original-buffer)
