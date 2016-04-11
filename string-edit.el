@@ -37,6 +37,8 @@ before the minor mode is enabled.")
 
 ;;;###autoload
 (defun string-edit-at-point ()
+  "Pop up a buffer to edit the string at point.
+This saves you from needing to manually escape characters."
   (interactive)
   (when (se/point-inside-string-p)
     (let* ((p (point))
