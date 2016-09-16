@@ -95,6 +95,7 @@ This saves you from needing to manually escape characters."
 (defun se/guess-at-major-mode ()
   (save-excursion
     (goto-char (point-min))
+    (skip-syntax-forward " " (point-max))
     (when (looking-at "<")
       (html-mode))))
 
