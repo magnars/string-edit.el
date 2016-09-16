@@ -4,6 +4,7 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 0.1.0
+;; Package-Version: 20160410.2356
 ;; Package-Requires: ((dash "1.2.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -29,6 +30,9 @@
 
 (defvar se/original)
 (defvar se/original-buffer)
+
+(defvar se/unescaped-quotes '("\`")
+    "List of quotes that don't need escaped content. For example Javascript's Template Literals.")
 
 (defvar string-edit-at-point-hook ()
   "Hook to run just before enabling `string-edit-mode'.
@@ -70,16 +74,18 @@ This saves you from needing to manually escape characters."
         (contents (buffer-substring-no-properties (point-min) (point-max)))
         (original se/original)
         (original-buffer se/original-buffer)
-        (beg (se/aget :beg se/original)))
+        (beg (se/aget :beg se/original))
+        (quote (se/aget :quote se/original)))
     (kill-buffer)
     (delete-window)
     (switch-to-buffer original-buffer)
     (goto-char beg)
     (delete-char (length (se/aget :raw original)))
-    (insert "\"" contents "\"")
-    (let ((end (point)))
-      (goto-char (+ p beg))
-      (indent-region beg end))))
+    (insert quote contents quote)
+    (unless (member quote se/unescaped-quotes)
+      (let ((end (point)))
+        (goto-char (+ p beg))
+        (indent-region beg end)))))
 
 (defun se/find-original ()
   (if (derived-mode-p 'js2-mode 'js-mode)
@@ -149,7 +155,7 @@ This saves you from needing to manually escape characters."
 (defun se/current-quotes-char ()
   "The char that is the current quote delimiter, or nil if not in a string."
   (let ((delimiter (nth 3 (syntax-ppss))))
-    (cond ((stringp delimiter) delimiter)
+    (cond ((char-or-string-p delimiter) delimiter)
           ;; `syntax-ppss' can return t meaning 'a generic string delimiter'.
           (delimiter ?\"))))
 
@@ -185,6 +191,7 @@ This saves you from needing to manually escape characters."
     `((:beg . ,beg)
       (:end . ,end)
       (:raw . ,raw)
+      (:quote . ,quote)
       (:cleanup . ,(-partial 'se/string-at-point/clean-up quote))
       (:escape . ,(-partial 'se/string-at-point/escape quote)))))
 
@@ -195,17 +202,19 @@ This saves you from needing to manually escape characters."
     (goto-char (point-min))
     (delete-char (length quote))
     (se/unescape quote)
-    (se/unescape-ws "n" "\n")
-    (se/unescape-ws "r" "\r")
-    (se/unescape-ws "t" "\t")
-    (se/unescape "\\")))
+    (unless (member quote se/unescaped-quotes)
+      (se/unescape-ws "n" "\n")
+      (se/unescape-ws "r" "\r")
+      (se/unescape-ws "t" "\t")
+      (se/unescape "\\"))))
 
 (defun se/string-at-point/escape (quote)
   (save-excursion
-    (se/escape "\\")
-    (se/escape-ws "n" "\n")
-    (se/escape-ws "r" "\r")
-    (se/escape-ws "t" "\t")
+    (unless (member quote se/unescaped-quotes)
+      (se/escape "\\")
+      (se/escape-ws "n" "\n")
+      (se/escape-ws "r" "\r")
+      (se/escape-ws "t" "\t"))
     (se/escape quote)))
 
 ;; JavaScript strings, can be concatenated
@@ -228,6 +237,7 @@ This saves you from needing to manually escape characters."
     `((:beg . ,beg)
       (:end . ,end)
       (:raw . ,(buffer-substring-no-properties beg end))
+      (:quote . ,quote)
       (:cleanup . ,(-partial 'se/js-strings-at-point/clean-up quote))
       (:escape . ,(-partial 'se/js-strings-at-point/escape quote)))))
 
