@@ -25,3 +25,7 @@
 (When "^I edit the string at point$"
      (lambda ()
        (call-interactively 'string-edit-at-point)))
+
+(Then "^html-mode should be active$"
+      (lambda()
+        (should (eq major-mode 'html-mode))))

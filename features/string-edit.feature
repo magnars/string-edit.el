@@ -133,3 +133,44 @@ Feature: Edit string at point
     And I type "test"
     And I press "C-c C-c"
     Then I should see "s = "my teststring""
+
+  Scenario: Open template string in javascript
+    Given I turn on typescript-mode
+    And I insert:
+    """
+    var s = `my
+    string
+    yeah`;
+    """
+    When I go to the front of the word "string"
+    And I edit the string at point
+    And I type "test"
+    And I press "C-c C-c"
+    Then I should see:
+    """
+    var s = `my
+    teststring
+    yeah`;
+    """
+
+  Scenario: Open indented template HTML string in javascript
+    Given I turn on typescript-mode
+    And I insert:
+    """
+    var s = `
+                <div> my
+                      string
+                </div>`;
+    """
+    When I go to the front of the word "string"
+    And I edit the string at point
+    Then html-mode should be active
+    When I type "test"
+    And I press "C-c C-c"
+    Then I should see:
+    """
+    var s = `
+                <div> my
+                      teststring
+                </div>`;
+    """
