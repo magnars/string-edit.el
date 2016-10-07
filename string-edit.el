@@ -4,7 +4,8 @@
 
 ;; Author: Magnar Sveen <magnars@gmail.com>
 ;; Version: 0.1.0
-;; Package-Version: 20160410.2356
+;; Package-Version: 20160916.1313
+;; Package-X-Original-Version: 20160410.2356
 ;; Package-Requires: ((dash "1.2.0"))
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -38,6 +39,9 @@
   "Hook to run just before enabling `string-edit-mode'.
 This hook provides an opportunity to enable a custom major mode
 before the minor mode is enabled.")
+
+(defvar string-edit-html-mode 'html-mode
+  "Preferred mode for editing html string")
 
 ;;;###autoload
 (defun string-edit-at-point ()
@@ -97,7 +101,7 @@ This saves you from needing to manually escape characters."
     (goto-char (point-min))
     (skip-syntax-forward " " (point-max))
     (when (looking-at "<")
-      (html-mode))))
+      (funcall string-edit-html-mode))))
 
 (defun se/unescape (quote)
   (goto-char (point-min))
