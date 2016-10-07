@@ -8,6 +8,7 @@
 (require 'string-edit)
 (require 'espuds)
 (require 'ert)
+(require 'typescript-mode)
 
 (Before
  (switch-to-buffer
