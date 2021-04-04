@@ -30,10 +30,19 @@
 (defvar se/original)
 (defvar se/original-buffer)
 
+;; Don't kill the variables if user changes major mode
+(put 'se/original 'permanent-local t)
+(put 'se/original-buffer 'permanent-local t)
+
 (defvar string-edit-at-point-hook ()
   "Hook to run just before enabling `string-edit-mode'.
 This hook provides an opportunity to enable a custom major mode
 before the minor mode is enabled.")
+
+(defun se/after-change-major-mode ()
+  "Reenable `string-edit-mode' after major mode change."
+  (string-edit-mode 1))
+(put 'se/after-change-major-mode 'permanent-local-hook t)
 
 ;;;###autoload
 (defun string-edit-at-point ()
@@ -55,6 +64,7 @@ This saves you from needing to manually escape characters."
       (string-edit-mode 1)
       (set (make-local-variable 'se/original) original)
       (set (make-local-variable 'se/original-buffer) original-buffer)
+      (add-hook 'after-change-major-mode-hook 'se/after-change-major-mode nil t)
       (font-lock-fontify-buffer))))
 
 (defun string-edit-abort ()
