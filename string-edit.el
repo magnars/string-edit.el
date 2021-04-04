@@ -129,7 +129,7 @@ This saves you from needing to manually escape characters."
 (define-minor-mode string-edit-mode
   "Minor mode for useful keybindings while editing string."
   nil " StringEdit" string-edit-mode-map
-  (if string-edit-mode-map
+  (if string-edit-mode
       (add-hook 'post-command-hook 'se/post-command nil t)
     (remove-hook 'post-command-hook 'se/post-command t)))
 
