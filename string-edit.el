@@ -59,7 +59,7 @@ This saves you from needing to manually escape characters."
       (goto-char (- p (se/aget :beg original) -1))
       (funcall (se/aget :cleanup original))
       (enlarge-window (1- (line-number-at-pos (point-max))))
-      (se/guess-at-major-mode)
+      (se/guess-at-major-mode original-buffer)
       (run-hooks 'string-edit-at-point-hook)
       (string-edit-mode 1)
       (set (make-local-variable 'se/original) original)
@@ -92,15 +92,24 @@ This saves you from needing to manually escape characters."
       (indent-region beg end))))
 
 (defun se/find-original ()
-  (if (derived-mode-p 'js2-mode 'js-mode)
-      (se/js-strings-at-point)
-    (se/string-at-point)))
+  (cond
+   ((derived-mode-p 'js2-mode 'js-mode)
+    (se/js-strings-at-point))
+   ((eq major-mode 'emacs-lisp-mode)
+    (se/elisp-string-at-point))
+   (t
+    (se/string-at-point))))
 
-(defun se/guess-at-major-mode ()
-  (save-excursion
+(defun se/guess-at-major-mode (original-buffer)
+  (cond
+   ((save-excursion
     (goto-char (point-min))
-    (when (looking-at "<")
-      (html-mode))))
+      (looking-at "<"))
+    (html-mode))
+   ((with-current-buffer original-buffer
+      (and (eq major-mode 'emacs-lisp-mode)
+           (fboundp 'elisp-docstring-mode)))
+    (elisp-docstring-mode))))
 
 (defun se/unescape (quote)
   (goto-char (point-min))
@@ -268,6 +277,26 @@ This saves you from needing to manually escape characters."
       (end-of-line)
       (unless (eobp)
         (insert "\" +")))))
+
+;; Elisp docstring
+
+(defun se/elisp-string-at-point ()
+  (let* ((pos (se/string-position-at-point))
+         (p (point))
+         (beg (car pos))
+         (end (cdr pos))
+         (raw (buffer-substring-no-properties beg end))
+         (quote (char-to-string (se/current-quotes-char))))
+    `((:beg . ,beg)
+      (:end . ,end)
+      (:raw . ,raw)
+      (:cleanup . ,(-partial 'se/string-at-point/clean-up quote))
+      (:escape . ,(-partial 'se/elisp-string-at-point/escape quote)))))
+
+(defun se/elisp-string-at-point/escape (quote)
+  (save-excursion
+    (se/escape "\\")
+    (se/escape quote)))
 
 (provide 'string-edit)
 ;;; string-edit.el ends here
