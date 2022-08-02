@@ -1,4 +1,4 @@
-;;; string-edit.el --- Avoid escape nightmares by editing string in separate buffer
+;;; string-edit-at-point.el --- Avoid escape nightmares by editing string in separate buffer
 
 ;; Copyright (C) 2013 Magnar Sveen
 
@@ -34,18 +34,18 @@
 (put 'se/original 'permanent-local t)
 (put 'se/original-buffer 'permanent-local t)
 
-(defvar string-edit-at-point-hook ()
-  "Hook to run just before enabling `string-edit-mode'.
+(defvar string-edit-at-point-at-point-hook ()
+  "Hook to run just before enabling `string-edit-at-point-mode'.
 This hook provides an opportunity to enable a custom major mode
 before the minor mode is enabled.")
 
 (defun se/after-change-major-mode ()
-  "Reenable `string-edit-mode' after major mode change."
-  (string-edit-mode 1))
+  "Reenable `string-edit-at-point-mode' after major mode change."
+  (string-edit-at-point-mode 1))
 (put 'se/after-change-major-mode 'permanent-local-hook t)
 
 ;;;###autoload
-(defun string-edit-at-point ()
+(defun string-edit-at-point-at-point ()
   "Pop up a buffer to edit the string at point.
 This saves you from needing to manually escape characters."
   (interactive)
@@ -54,26 +54,26 @@ This saves you from needing to manually escape characters."
            (original-buffer (current-buffer))
            (original (se/find-original)))
       (select-window (split-window-vertically -4))
-      (switch-to-buffer (generate-new-buffer "*string-edit*"))
+      (switch-to-buffer (generate-new-buffer "*string-edit-at-point*"))
       (insert (se/aget :raw original))
       (goto-char (- p (se/aget :beg original) -1))
       (funcall (se/aget :cleanup original))
       (enlarge-window (1- (line-number-at-pos (point-max))))
       (se/guess-at-major-mode)
-      (run-hooks 'string-edit-at-point-hook)
-      (string-edit-mode 1)
+      (run-hooks 'string-edit-at-point-at-point-hook)
+      (string-edit-at-point-mode 1)
       (set (make-local-variable 'se/original) original)
       (set (make-local-variable 'se/original-buffer) original-buffer)
       (add-hook 'after-change-major-mode-hook 'se/after-change-major-mode nil t)
       (font-lock-fontify-buffer))))
 
-(defun string-edit-abort ()
-  "Used in string-edit-mode to close the popup window"
+(defun string-edit-at-point-abort ()
+  "Used in string-edit-at-point-mode to close the popup window"
   (interactive)
   (kill-buffer)
   (delete-window))
 
-(defun string-edit-conclude ()
+(defun string-edit-at-point-conclude ()
   (interactive)
   (funcall (se/aget :escape se/original))
   (let ((p (point))
@@ -126,22 +126,22 @@ This saves you from needing to manually escape characters."
     (replace-match "")
     (insert "\\" signifier)))
 
-(defvar string-edit-mode-map nil
-  "Keymap for string-edit minor mode.")
+(defvar string-edit-at-point-mode-map nil
+  "Keymap for string-edit-at-point minor mode.")
 
-(unless string-edit-mode-map
-  (setq string-edit-mode-map (make-sparse-keymap)))
+(unless string-edit-at-point-mode-map
+  (setq string-edit-at-point-mode-map (make-sparse-keymap)))
 
-(--each '(("C-c C-k" . string-edit-abort)
-          ("C-c C-c" . string-edit-conclude))
-  (define-key string-edit-mode-map (read-kbd-macro (car it)) (cdr it)))
+(--each '(("C-c C-k" . string-edit-at-point-abort)
+          ("C-c C-c" . string-edit-at-point-conclude))
+  (define-key string-edit-at-point-mode-map (read-kbd-macro (car it)) (cdr it)))
 
-(define-minor-mode string-edit-mode
+(define-minor-mode string-edit-at-point-mode
   "Minor mode for useful keybindings while editing string."
   :init-value nil
   :lighter " StringEdit"
-  :keymap string-edit-mode-map
-  (if string-edit-mode
+  :keymap string-edit-at-point-mode-map
+  (if string-edit-at-point-mode
       (add-hook 'post-command-hook 'se/post-command nil t)
     (remove-hook 'post-command-hook 'se/post-command t)))
 
@@ -269,5 +269,5 @@ This saves you from needing to manually escape characters."
       (unless (eobp)
         (insert "\" +")))))
 
-(provide 'string-edit)
-;;; string-edit.el ends here
+(provide 'string-edit-at-point)
+;;; string-edit-at-point.el ends here
