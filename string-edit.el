@@ -34,7 +34,7 @@
 (put 'se/original 'permanent-local t)
 (put 'se/original-buffer 'permanent-local t)
 
-(defvar string-edit-at-point-at-point-hook ()
+(defvar string-edit-at-point-hook ()
   "Hook to run just before enabling `string-edit-at-point-mode'.
 This hook provides an opportunity to enable a custom major mode
 before the minor mode is enabled.")
@@ -45,7 +45,7 @@ before the minor mode is enabled.")
 (put 'se/after-change-major-mode 'permanent-local-hook t)
 
 ;;;###autoload
-(defun string-edit-at-point-at-point ()
+(defun string-edit-at-point ()
   "Pop up a buffer to edit the string at point.
 This saves you from needing to manually escape characters."
   (interactive)
@@ -60,7 +60,7 @@ This saves you from needing to manually escape characters."
       (funcall (se/aget :cleanup original))
       (enlarge-window (1- (line-number-at-pos (point-max))))
       (se/guess-at-major-mode)
-      (run-hooks 'string-edit-at-point-at-point-hook)
+      (run-hooks 'string-edit-at-point-hook)
       (string-edit-at-point-mode 1)
       (set (make-local-variable 'se/original) original)
       (set (make-local-variable 'se/original-buffer) original-buffer)
