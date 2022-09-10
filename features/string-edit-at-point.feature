@@ -5,11 +5,11 @@ Feature: Edit string at point
     And I insert "var s = "my string";"
     When I go to the front of the word "string"
     And I edit the string at point
-    Then I should be in buffer "*string-edit*"
+    Then I should be in buffer "*string-edit-at-point*"
     And I should see "my string"
     And I should not see "var s = "my string";"
     When I press "C-c C-k"
-    Then I should be in buffer "*string-edit-main-buffer*"
+    Then I should be in buffer "*string-edit-at-point-main-buffer*"
 
   Scenario: Keep point position after entering edit buffer
     Given I turn on javascript-mode
@@ -26,7 +26,7 @@ Feature: Edit string at point
     And I edit the string at point
     And I type "test"
     And I press "C-c C-c"
-    Then I should be in buffer "*string-edit-main-buffer*"
+    Then I should be in buffer "*string-edit-at-point-main-buffer*"
     And I should see "var s = "my teststring";"
 
   Scenario: Keep point position after exiting edit buffer

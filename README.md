@@ -1,18 +1,18 @@
-# string-edit.el [![Build Status](https://secure.travis-ci.org/magnars/string-edit.el.png)](http://travis-ci.org/magnars/string-edit.el)
+# string-edit-at-point.el [![Build Status](https://secure.travis-ci.org/magnars/string-edit.el.png)](http://travis-ci.org/magnars/string-edit.el)
 
 Avoid escape nightmares by editing strings in a separate buffer.
 
 ## Installation
 
-I highly recommended installing string-edit through elpa.
+I highly recommended installing string-edit-at-point through elpa.
 
 It's available on [marmalade](http://marmalade-repo.org/) and
 [melpa](http://melpa.milkbox.net/):
 
-    M-x package-install string-edit
+    M-x package-install string-edit-at-point
 
 You can also install the dependencies on your own, and just dump
-string-edit in your path somewhere:
+string-edit-at-point in your path somewhere:
 
  - <a href="https://github.com/magnars/dash.el">dash.el</a>
 
@@ -49,13 +49,13 @@ They are written in [Ecukes](http://ecukes.info), a Cucumber for Emacs.
 
 You'll find the repo at:
 
-    https://github.com/magnars/string-edit.el
+    https://github.com/magnars/string-edit-at-point.el
 
 To fetch the test dependencies, install
 [cask](https://github.com/rejeep/cask.el) if you haven't already,
 then:
 
-    $ cd /path/to/string-edit
+    $ cd /path/to/string-edit-at-point
     $ cask
 
 Run the tests with:
