@@ -9,7 +9,7 @@ I highly recommended installing string-edit-at-point through elpa.
 It's available on [marmalade](http://marmalade-repo.org/) and
 [melpa](http://melpa.milkbox.net/):
 
-    M-x package-install string-edit-at-point
+    M-x package-install string-edit
 
 You can also install the dependencies on your own, and just dump
 string-edit-at-point in your path somewhere:
