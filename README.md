@@ -45,7 +45,8 @@ works a little special there:
 Yes, please do. :-)
 
 All changes must be accompanied by feature tests, or I might break it later.
-They are written in [Ecukes](http://ecukes.info), a Cucumber for Emacs.
+They are written in [Ecukes](https://github.com/ecukes/ecukes), a Cucumber for
+Emacs.
 
 You'll find the repo at:
 
